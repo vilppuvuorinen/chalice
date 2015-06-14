@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"golang.org/x/net/context"
 	"github.com/vilppuvuorinen/chalice/httputil"
+	"golang.org/x/net/context"
 )
 
-// PanicRevocer recovers from panic and returns HTTP 500 if possible.
+// PanicRecover recovers from panic and returns HTTP 500 if possible.
 func PanicRecover(f func(
 	context.Context,
 	http.ResponseWriter,

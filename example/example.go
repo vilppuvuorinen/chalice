@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/net/context"
-	"github.com/vilppuvuorinen/chalice/fnutil"
+	"github.com/vilppuvuorinen/chalice"
+	"github.com/vilppuvuorinen/chalice/compat/httproutercmpt"
 	_m "github.com/vilppuvuorinen/chalice/middleware"
+	"golang.org/x/net/context"
 )
 
 func IndexHandle(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -26,40 +27,36 @@ func PanicHandle(c context.Context, w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Println("Starting server...")
 
-	var baseHandle = fnutil.MkPartial(
+	var baseHandle = chalice.MkPartial(
 		_m.Logger,
 		_m.PanicRecover,
 	)
 
 	r := httprouter.New()
 
-	r.NotFound = fnutil.ContextifyNetHttp(
-		baseHandle(
-			fnutil.ContextifyHandler(http.NotFound),
-		),
-	)
+	r.NotFound = chalice.CallWithContext(baseHandle(
+		chalice.ContextifyHandleFunc(http.NotFound),
+	))
 
 	// Index
-	r.GET("/", fnutil.ContextifyHttprouter(
-		baseHandle(
-			IndexHandle,
-		)),
+	r.GET(
+		"/",
+		httproutercmpt.CallWithContext(baseHandle(IndexHandle)),
 	)
+
 	// Login with always failing authentication
-	r.GET("/login", fnutil.ContextifyHttprouter(
-		baseHandle(
+	r.GET(
+		"/login",
+		httproutercmpt.CallWithContext(baseHandle(
 			SecretHandle,
-			_m.NewBasicAuth(func(username, password string) bool {
-				return false
-			}),
+			_m.NewBasicAuth(func(username, password string) bool { return false }),
 		)),
 	)
 
 	// Panicer
-	r.GET("/panic", fnutil.ContextifyHttprouter(
-		baseHandle(
-			PanicHandle,
-		)),
+	r.GET(
+		"/panic",
+		httproutercmpt.CallWithContext(baseHandle(PanicHandle)),
 	)
 
 	log.Fatal(http.ListenAndServe(":8000", r))

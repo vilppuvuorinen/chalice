@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"golang.org/x/net/context"
 	"github.com/vilppuvuorinen/chalice/httputil"
+	"golang.org/x/net/context"
 )
 
 type key int
@@ -27,12 +27,12 @@ func NewAnyAuth(
 // credentials passed in POST body in format:
 //   { "Username": "user", "Password": "pass" }
 // Validation is performed with provided function.
-func NewPostJsonAuth(
+func NewPostJSONAuth(
 	authFunc func(username, password string) bool,
 ) func(
 	func(context.Context, http.ResponseWriter, *http.Request),
 ) func(context.Context, http.ResponseWriter, *http.Request) {
-	return newAuth(parsePostJson, authFunc)
+	return newAuth(parsePostJSON, authFunc)
 }
 
 // NewBasicAuth creates a new auth decorator accepting
@@ -88,7 +88,7 @@ type auth struct {
 	Username, Password string
 }
 
-func parsePostJson(r *http.Request) (username, password string, ok bool) {
+func parsePostJSON(r *http.Request) (username, password string, ok bool) {
 	d := json.NewDecoder(r.Body)
 	var a auth
 	err := d.Decode(&a)
@@ -105,5 +105,5 @@ func parseAny(r *http.Request) (username, password string, ok bool) {
 	}
 
 	// No need to verify. Failure will be relayed.
-	return parsePostJson(r)
+	return parsePostJSON(r)
 }
